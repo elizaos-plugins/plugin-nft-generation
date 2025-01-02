@@ -46,13 +46,19 @@ const nftCollectionGeneration: Action = {
             AwsS3BucketOk
         );
     },
-    handler: async (
+    handler: async ({
+        runtime,
+        message,
+        state,
+        options,
+        callback,
+    }: {
         runtime: IAgentRuntime,
         message: Memory,
         state: State,
         options: { [key: string]: unknown },
         callback: HandlerCallback
-    ) => {
+    }): Promise<any> => {
         try {
             elizaLogger.log("Composing state for message:", message);
             const userId = runtime.agentId;
