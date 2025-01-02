@@ -22,5 +22,63 @@
   },
   "peerDependencies": {
     "whatwg-url": "7.1.0"
+  },
+  "pluginType": "elizaos:plugin:1.0.0",
+  "pluginParameters": {
+      "type": "object",
+      "required": [
+          "awsAccessKeyId",
+          "awsSecretAccessKey",
+          "awsRegion",
+          "awsS3Bucket",
+          "solanaPublicKey",
+          "solanaPrivateKey",
+          "solanaAdminPublicKey",
+          "solanaAdminPrivateKey"
+      ],
+      "properties": {
+          "awsAccessKeyId": {
+              "type": "string",
+              "description": "AWS access key for S3 uploads"
+          },
+          "awsSecretAccessKey": {
+              "type": "string",
+              "description": "AWS secret key for S3 uploads"
+          },
+          "awsRegion": {
+              "type": "string",
+              "description": "AWS region where S3 is located"
+          },
+          "awsS3Bucket": {
+              "type": "string",
+              "description": "Name of the AWS S3 bucket"
+          },
+          "solanaPublicKey": {
+              "type": "string",
+              "description": "Public key for Solana blockchain"
+          },
+          "solanaPrivateKey": {
+              "type": "string",
+              "description": "Private key for Solana blockchain"
+          },
+          "solanaAdminPublicKey": {
+              "type": "string",
+              "description": "Admin public key for Solana operations"
+          },
+          "solanaAdminPrivateKey": {
+              "type": "string",
+              "description": "Admin private key for Solana operations"
+          }
+      }
+  },
+  "pluginEnv": {
+      "AWS_ACCESS_KEY_ID": "awsAccessKeyId",
+      "AWS_SECRET_ACCESS_KEY": "awsSecretAccessKey",
+      "AWS_REGION": "awsRegion",
+      "AWS_S3_BUCKET": "awsS3Bucket",
+      "SOLANA_PUBLIC_KEY": "solanaPublicKey",
+      "SOLANA_PRIVATE_KEY": "solanaPrivateKey",
+      "SOLANA_ADMIN_PUBLIC_KEY": "solanaAdminPublicKey",
+      "SOLANA_ADMIN_PRIVATE_KEY": "solanaAdminPrivateKey"
   }
 }
