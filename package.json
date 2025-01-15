@@ -20,8 +20,8 @@
     ],
     "dependencies": {
         "@elizaos/core": "workspace:*",
-        "@elizaos-plugins/plugin-image-generation": "github:elizaos-plugins/plugin-image-generation",
-        "@elizaos-plugins/plugin-node": "github:elizaos-plugins/plugin-node",
+        "@elizaos/plugin-image-generation": "github:elizaos-plugins/plugin-image-generation",
+        "@elizaos/plugin-node": "github:elizaos-plugins/plugin-node",
         "@metaplex-foundation/mpl-token-metadata": "^3.3.0",
         "@metaplex-foundation/mpl-toolbox": "^0.9.4",
         "@metaplex-foundation/umi": "^0.9.2",
