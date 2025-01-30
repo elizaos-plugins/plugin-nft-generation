@@ -1,5 +1,5 @@
 {
-    "name": "@elizaos/plugin-nft-generation",
+    "name": "@elizaos-plugins/plugin-nft-generation",
     "version": "0.1.8+build.1",
     "type": "module",
     "main": "dist/index.js",
@@ -15,7 +15,9 @@
             }
         }
     },
-    "files": ["dist"],
+    "files": [
+        "dist"
+    ],
     "dependencies": {
         "@elizaos/core": "workspace:*",
         "@elizaos/plugin-image-generation": "github:elizaos-plugins/plugin-image-generation",
