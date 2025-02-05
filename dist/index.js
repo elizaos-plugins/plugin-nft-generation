@@ -19,7 +19,7 @@ import {
   saveBase64Image,
   saveHeuristImage
 } from "@elizaos/plugin-image-generation";
-import { PublicKey as PublicKey2 } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
 // src/provider/wallet/walletSolana.ts
 import NodeCache from "node-cache";
@@ -275,7 +275,7 @@ async function createCollectionMetadata({
   elizaLogger2.log("User ID:", userId);
   const awsS3Service = runtime.getService(ServiceType.AWS_S3);
   const agentName = runtime.character.name;
-  const roomId = stringToUuid("nft_generate_room-" + agentName);
+  const roomId = stringToUuid(`nft_generate_room-${agentName}`);
   const memory = {
     agentId: userId,
     userId,
@@ -304,7 +304,7 @@ async function createCollectionMetadata({
   );
   if (images.success && images.data && images.data.length > 0) {
     const image = images.data[0];
-    const filename = `collection-image`;
+    const filename = "collection-image";
     if (image.startsWith("http")) {
       elizaLogger2.log("Generating image url:", image);
     }
@@ -349,7 +349,7 @@ async function createSolanaCollection({
   if (!collectionInfo) return null;
   const publicKey2 = runtime.getSetting("SOLANA_PUBLIC_KEY");
   const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY");
-  const wallet = new walletSolana_default(new PublicKey2(publicKey2), privateKey);
+  const wallet = new walletSolana_default(new PublicKey(publicKey2), privateKey);
   const collectionAddressRes = await wallet.createCollection({
     ...collectionInfo
   });
@@ -4289,7 +4289,7 @@ var CreateCollectionSchema = z.object({
 
 // src/actions/nftCollectionGeneration.ts
 import * as viemChains2 from "viem/chains";
-import { PublicKey as PublicKey3 } from "@solana/web3.js";
+import { PublicKey as PublicKey2 } from "@solana/web3.js";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -4298,9 +4298,9 @@ import { encodeAbiParameters } from "viem";
 
 // src/utils/generateERC721ContractCode.ts
 import solc from "solc";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 function loadOpenZeppelinFile(contractPath) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -4335,7 +4335,9 @@ function compileWithImports(contractName, sourceCode) {
     solc.compile(JSON.stringify(input), { import: importResolver })
   );
   if (output.errors) {
-    output.errors.forEach((err) => console.error(err));
+    for (const err of output.errors) {
+      console.error(err);
+    }
   }
   const contractFile = output.contracts[`${contractName}.sol`][`${contractName}`];
   const metadata = JSON.parse(contractFile.metadata);
@@ -4503,12 +4505,12 @@ var nftCollectionGeneration = {
     const solanaPublicKeyOk = !!runtime.getSetting("SOLANA_PUBLIC_KEY");
     return awsAccessKeyIdOk || awsSecretAccessKeyOk || awsRegionOk || awsS3BucketOk || solanaPrivateKeyOk || solanaPublicKeyOk;
   },
-  handler: async (runtime, message, state, options, callback) => {
+  handler: async (runtime, message, _state, _options, callback) => {
     try {
       elizaLogger3.log("Composing state for message:", message);
-      const state2 = await runtime.composeState(message);
+      const state = await runtime.composeState(message);
       const context = composeContext2({
-        state: state2,
+        state,
         template: createCollectionTemplate
       });
       const chains = _SupportedChainList2;
@@ -4533,7 +4535,7 @@ var nftCollectionGeneration = {
         const publicKey2 = runtime.getSetting("SOLANA_PUBLIC_KEY");
         const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY");
         const wallet = new walletSolana_default(
-          new PublicKey3(publicKey2),
+          new PublicKey2(publicKey2),
           privateKey
         );
         const collectionAddressRes = await wallet.createCollection({
@@ -4878,7 +4880,7 @@ import {
   saveBase64Image as saveBase64Image2,
   saveHeuristImage as saveHeuristImage2
 } from "@elizaos/plugin-image-generation";
-import { PublicKey as PublicKey4 } from "@solana/web3.js";
+import { PublicKey as PublicKey3 } from "@solana/web3.js";
 var nftTemplate = `
 # Areas of Expertise
 {{knowledge}}
@@ -4996,7 +4998,7 @@ async function createNFT({
   if (nftInfo) {
     const publicKey2 = runtime.getSetting("SOLANA_PUBLIC_KEY");
     const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY");
-    const wallet = new walletSolana_default(new PublicKey4(publicKey2), privateKey);
+    const wallet = new walletSolana_default(new PublicKey3(publicKey2), privateKey);
     const nftAddressRes = await wallet.mintNFT({
       name: nftInfo.name,
       uri: nftInfo.uri,
@@ -5017,7 +5019,7 @@ async function createNFT({
 }
 
 // src/handlers/verifyNFT.ts
-import { PublicKey as PublicKey5 } from "@solana/web3.js";
+import { PublicKey as PublicKey4 } from "@solana/web3.js";
 async function verifyNFT({
   runtime,
   collectionAddress,
@@ -5026,7 +5028,7 @@ async function verifyNFT({
   const adminPublicKey = runtime.getSetting("SOLANA_ADMIN_PUBLIC_KEY");
   const adminPrivateKey = runtime.getSetting("SOLANA_ADMIN_PRIVATE_KEY");
   const adminWallet = new walletSolana_default(
-    new PublicKey5(adminPublicKey),
+    new PublicKey4(adminPublicKey),
     adminPrivateKey
   );
   await adminWallet.verifyNft({
@@ -5039,7 +5041,7 @@ async function verifyNFT({
 }
 
 // src/actions/mintNFTAction.ts
-import { PublicKey as PublicKey6 } from "@solana/web3.js";
+import { PublicKey as PublicKey5 } from "@solana/web3.js";
 import * as viemChains3 from "viem/chains";
 import { createPublicClient as createPublicClient2, createWalletClient as createWalletClient2, http as http2 } from "viem";
 import { privateKeyToAccount as privateKeyToAccount2 } from "viem/accounts";
@@ -5075,16 +5077,17 @@ var mintNFTAction = {
     );
     return awsAccessKeyIdOk || awsSecretAccessKeyOk || awsRegionOk || awsS3BucketOk || solanaAdminPrivateKeyOk || solanaAdminPublicKeyOk;
   },
-  handler: async (runtime, message, state, options, callback) => {
+  handler: async (runtime, message, state, _options, callback) => {
     try {
       elizaLogger5.log("Composing state for message:", message);
+      let currentState;
       if (!state) {
-        state = await runtime.composeState(message);
+        currentState = await runtime.composeState(message);
       } else {
-        state = await runtime.updateRecentMessageState(state);
+        currentState = await runtime.updateRecentMessageState(state);
       }
       const context = composeContext4({
-        state,
+        state: currentState,
         template: mintNFTTemplate
       });
       const chains = _SupportedChainList3;
@@ -5115,7 +5118,7 @@ var mintNFTAction = {
         const publicKey2 = runtime.getSetting("SOLANA_PUBLIC_KEY");
         const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY");
         const wallet = new walletSolana_default(
-          new PublicKey6(publicKey2),
+          new PublicKey5(publicKey2),
           privateKey
         );
         const collectionInfo = await wallet.fetchDigitalAsset(
