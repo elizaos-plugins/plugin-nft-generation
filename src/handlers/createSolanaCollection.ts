@@ -12,7 +12,7 @@ import {
 import {
     saveBase64Image,
     saveHeuristImage,
-} from "@elizaos/plugin-image-generation";
+} from "@elizaos-plugins/plugin-image-generation";
 import { PublicKey } from "@solana/web3.js";
 import WalletSolana from "../provider/wallet/walletSolana.ts";
 import { collectionImageTemplate } from "../templates.ts";
