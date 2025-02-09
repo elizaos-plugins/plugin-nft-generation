@@ -18,7 +18,7 @@ import {
 import {
   saveBase64Image,
   saveHeuristImage
-} from "@elizaos/plugin-image-generation";
+} from "@elizaos-plugins/plugin-image-generation";
 import { PublicKey } from "@solana/web3.js";
 
 // src/provider/wallet/walletSolana.ts
@@ -336,30 +336,6 @@ async function createCollectionMetadata({
   }
   return null;
 }
-async function createSolanaCollection({
-  runtime,
-  collectionName,
-  fee
-}) {
-  const collectionInfo = await createCollectionMetadata({
-    runtime,
-    collectionName,
-    fee
-  });
-  if (!collectionInfo) return null;
-  const publicKey2 = runtime.getSetting("SOLANA_PUBLIC_KEY");
-  const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY");
-  const wallet = new walletSolana_default(new PublicKey(publicKey2), privateKey);
-  const collectionAddressRes = await wallet.createCollection({
-    ...collectionInfo
-  });
-  return {
-    network: "solana",
-    address: collectionAddressRes.address,
-    link: collectionAddressRes.link,
-    collectionInfo
-  };
-}
 
 // ../../node_modules/zod/lib/index.mjs
 var util;
@@ -516,6 +492,9 @@ var quotelessJson = (obj) => {
   return json.replace(/"([^"]+)":/g, "$1:");
 };
 var ZodError = class _ZodError extends Error {
+  get errors() {
+    return this.issues;
+  }
   constructor(issues) {
     super();
     this.issues = [];
@@ -533,9 +512,6 @@ var ZodError = class _ZodError extends Error {
     }
     this.name = "ZodError";
     this.issues = issues;
-  }
-  get errors() {
-    return this.issues;
   }
   format(_mapper) {
     const mapper = _mapper || function(issue) {
@@ -747,8 +723,11 @@ function addIssueToContext(ctx, issueData) {
     path: ctx.path,
     errorMaps: [
       ctx.common.contextualErrorMap,
+      // contextual error map is first priority
       ctx.schemaErrorMap,
+      // then schema-bound map if available
       overrideMap,
+      // then global override map
       overrideMap === errorMap ? void 0 : errorMap
       // then global default map
     ].filter((x) => !!x)
@@ -899,34 +878,6 @@ function processCreateParams(params) {
   return { errorMap: customMap, description };
 }
 var ZodType = class {
-  constructor(def) {
-    this.spa = this.safeParseAsync;
-    this._def = def;
-    this.parse = this.parse.bind(this);
-    this.safeParse = this.safeParse.bind(this);
-    this.parseAsync = this.parseAsync.bind(this);
-    this.safeParseAsync = this.safeParseAsync.bind(this);
-    this.spa = this.spa.bind(this);
-    this.refine = this.refine.bind(this);
-    this.refinement = this.refinement.bind(this);
-    this.superRefine = this.superRefine.bind(this);
-    this.optional = this.optional.bind(this);
-    this.nullable = this.nullable.bind(this);
-    this.nullish = this.nullish.bind(this);
-    this.array = this.array.bind(this);
-    this.promise = this.promise.bind(this);
-    this.or = this.or.bind(this);
-    this.and = this.and.bind(this);
-    this.transform = this.transform.bind(this);
-    this.brand = this.brand.bind(this);
-    this.default = this.default.bind(this);
-    this.catch = this.catch.bind(this);
-    this.describe = this.describe.bind(this);
-    this.pipe = this.pipe.bind(this);
-    this.readonly = this.readonly.bind(this);
-    this.isNullable = this.isNullable.bind(this);
-    this.isOptional = this.isOptional.bind(this);
-  }
   get description() {
     return this._def.description;
   }
@@ -989,6 +940,43 @@ var ZodType = class {
     };
     const result = this._parseSync({ data, path: ctx.path, parent: ctx });
     return handleResult(ctx, result);
+  }
+  "~validate"(data) {
+    var _a, _b;
+    const ctx = {
+      common: {
+        issues: [],
+        async: !!this["~standard"].async
+      },
+      path: [],
+      schemaErrorMap: this._def.errorMap,
+      parent: null,
+      data,
+      parsedType: getParsedType(data)
+    };
+    if (!this["~standard"].async) {
+      try {
+        const result = this._parseSync({ data, path: [], parent: ctx });
+        return isValid(result) ? {
+          value: result.value
+        } : {
+          issues: ctx.common.issues
+        };
+      } catch (err) {
+        if ((_b = (_a = err === null || err === void 0 ? void 0 : err.message) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === null || _b === void 0 ? void 0 : _b.includes("encountered")) {
+          this["~standard"].async = true;
+        }
+        ctx.common = {
+          issues: [],
+          async: true
+        };
+      }
+    }
+    return this._parseAsync({ data, path: [], parent: ctx }).then((result) => isValid(result) ? {
+      value: result.value
+    } : {
+      issues: ctx.common.issues
+    });
   }
   async parseAsync(data, params) {
     const result = await this.safeParseAsync(data, params);
@@ -1067,6 +1055,39 @@ var ZodType = class {
   superRefine(refinement) {
     return this._refinement(refinement);
   }
+  constructor(def) {
+    this.spa = this.safeParseAsync;
+    this._def = def;
+    this.parse = this.parse.bind(this);
+    this.safeParse = this.safeParse.bind(this);
+    this.parseAsync = this.parseAsync.bind(this);
+    this.safeParseAsync = this.safeParseAsync.bind(this);
+    this.spa = this.spa.bind(this);
+    this.refine = this.refine.bind(this);
+    this.refinement = this.refinement.bind(this);
+    this.superRefine = this.superRefine.bind(this);
+    this.optional = this.optional.bind(this);
+    this.nullable = this.nullable.bind(this);
+    this.nullish = this.nullish.bind(this);
+    this.array = this.array.bind(this);
+    this.promise = this.promise.bind(this);
+    this.or = this.or.bind(this);
+    this.and = this.and.bind(this);
+    this.transform = this.transform.bind(this);
+    this.brand = this.brand.bind(this);
+    this.default = this.default.bind(this);
+    this.catch = this.catch.bind(this);
+    this.describe = this.describe.bind(this);
+    this.pipe = this.pipe.bind(this);
+    this.readonly = this.readonly.bind(this);
+    this.isNullable = this.isNullable.bind(this);
+    this.isOptional = this.isOptional.bind(this);
+    this["~standard"] = {
+      version: 1,
+      vendor: "zod",
+      validate: (data) => this["~validate"](data)
+    };
+  }
   optional() {
     return ZodOptional.create(this, this._def);
   }
@@ -1077,7 +1098,7 @@ var ZodType = class {
     return this.nullable().optional();
   }
   array() {
-    return ZodArray.create(this, this._def);
+    return ZodArray.create(this);
   }
   promise() {
     return ZodPromise.create(this, this._def);
@@ -1143,16 +1164,20 @@ var ZodType = class {
 };
 var cuidRegex = /^c[^\s-]{8,}$/i;
 var cuid2Regex = /^[0-9a-z]+$/;
-var ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+var ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
 var uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
 var nanoidRegex = /^[a-z0-9_-]{21}$/i;
+var jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/;
 var durationRegex = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
 var emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 var _emojiRegex = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`;
 var emojiRegex;
 var ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-var ipv6Regex = /^(([a-f0-9]{1,4}:){7}|::([a-f0-9]{1,4}:){0,6}|([a-f0-9]{1,4}:){1}:([a-f0-9]{1,4}:){0,5}|([a-f0-9]{1,4}:){2}:([a-f0-9]{1,4}:){0,4}|([a-f0-9]{1,4}:){3}:([a-f0-9]{1,4}:){0,3}|([a-f0-9]{1,4}:){4}:([a-f0-9]{1,4}:){0,2}|([a-f0-9]{1,4}:){5}:([a-f0-9]{1,4}:){0,1})([a-f0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$/;
+var ipv4CidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
+var ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+var ipv6CidrRegex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
 var base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+var base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/;
 var dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
 var dateRegex = new RegExp(`^${dateRegexSource}$`);
 function timeRegexSource(args) {
@@ -1181,6 +1206,33 @@ function isValidIP(ip, version) {
     return true;
   }
   if ((version === "v6" || !version) && ipv6Regex.test(ip)) {
+    return true;
+  }
+  return false;
+}
+function isValidJWT(jwt, alg) {
+  if (!jwtRegex.test(jwt))
+    return false;
+  try {
+    const [header] = jwt.split(".");
+    const base64 = header.replace(/-/g, "+").replace(/_/g, "/").padEnd(header.length + (4 - header.length % 4) % 4, "=");
+    const decoded = JSON.parse(atob(base64));
+    if (typeof decoded !== "object" || decoded === null)
+      return false;
+    if (!decoded.typ || !decoded.alg)
+      return false;
+    if (alg && decoded.alg !== alg)
+      return false;
+    return true;
+  } catch (_a) {
+    return false;
+  }
+}
+function isValidCidr(ip, version) {
+  if ((version === "v4" || !version) && ipv4CidrRegex.test(ip)) {
+    return true;
+  }
+  if ((version === "v6" || !version) && ipv6CidrRegex.test(ip)) {
     return true;
   }
   return false;
@@ -1441,11 +1493,41 @@ var ZodString = class _ZodString extends ZodType {
           });
           status.dirty();
         }
+      } else if (check.kind === "jwt") {
+        if (!isValidJWT(input.data, check.alg)) {
+          ctx = this._getOrReturnCtx(input, ctx);
+          addIssueToContext(ctx, {
+            validation: "jwt",
+            code: ZodIssueCode.invalid_string,
+            message: check.message
+          });
+          status.dirty();
+        }
+      } else if (check.kind === "cidr") {
+        if (!isValidCidr(input.data, check.version)) {
+          ctx = this._getOrReturnCtx(input, ctx);
+          addIssueToContext(ctx, {
+            validation: "cidr",
+            code: ZodIssueCode.invalid_string,
+            message: check.message
+          });
+          status.dirty();
+        }
       } else if (check.kind === "base64") {
         if (!base64Regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "base64",
+            code: ZodIssueCode.invalid_string,
+            message: check.message
+          });
+          status.dirty();
+        }
+      } else if (check.kind === "base64url") {
+        if (!base64urlRegex.test(input.data)) {
+          ctx = this._getOrReturnCtx(input, ctx);
+          addIssueToContext(ctx, {
+            validation: "base64url",
             code: ZodIssueCode.invalid_string,
             message: check.message
           });
@@ -1497,8 +1579,20 @@ var ZodString = class _ZodString extends ZodType {
   base64(message) {
     return this._addCheck({ kind: "base64", ...errorUtil.errToObj(message) });
   }
+  base64url(message) {
+    return this._addCheck({
+      kind: "base64url",
+      ...errorUtil.errToObj(message)
+    });
+  }
+  jwt(options) {
+    return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options) });
+  }
   ip(options) {
     return this._addCheck({ kind: "ip", ...errorUtil.errToObj(options) });
+  }
+  cidr(options) {
+    return this._addCheck({ kind: "cidr", ...errorUtil.errToObj(options) });
   }
   datetime(options) {
     var _a, _b;
@@ -1590,8 +1684,7 @@ var ZodString = class _ZodString extends ZodType {
     });
   }
   /**
-   * @deprecated Use z.string().min(1) instead.
-   * @see {@link ZodString.min}
+   * Equivalent to `.min(1)`
    */
   nonempty(message) {
     return this.min(1, errorUtil.errToObj(message));
@@ -1653,8 +1746,14 @@ var ZodString = class _ZodString extends ZodType {
   get isIP() {
     return !!this._def.checks.find((ch) => ch.kind === "ip");
   }
+  get isCIDR() {
+    return !!this._def.checks.find((ch) => ch.kind === "cidr");
+  }
   get isBase64() {
     return !!this._def.checks.find((ch) => ch.kind === "base64");
+  }
+  get isBase64url() {
+    return !!this._def.checks.find((ch) => ch.kind === "base64url");
   }
   get minLength() {
     let min = null;
@@ -1933,17 +2032,15 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
   }
   _parse(input) {
     if (this._def.coerce) {
-      input.data = BigInt(input.data);
+      try {
+        input.data = BigInt(input.data);
+      } catch (_a) {
+        return this._getInvalidInput(input);
+      }
     }
     const parsedType = this._getType(input);
     if (parsedType !== ZodParsedType.bigint) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.bigint,
-        received: ctx2.parsedType
-      });
-      return INVALID;
+      return this._getInvalidInput(input);
     }
     let ctx = void 0;
     const status = new ParseStatus();
@@ -1989,6 +2086,15 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
       }
     }
     return { status: status.value, value: input.data };
+  }
+  _getInvalidInput(input) {
+    const ctx = this._getOrReturnCtx(input);
+    addIssueToContext(ctx, {
+      code: ZodIssueCode.invalid_type,
+      expected: ZodParsedType.bigint,
+      received: ctx.parsedType
+    });
+    return INVALID;
   }
   gte(value, message) {
     return this.setLimit("min", value, true, errorUtil.toString(message));
@@ -4433,6 +4539,7 @@ async function verifyEVMContract({
   constructorArgs = "",
   apiEndpoint
 }) {
+  var _a, _b, _c, _d;
   const verificationData = {
     module: "contract",
     action: "verifysourcecode",
@@ -4441,8 +4548,8 @@ async function verifyEVMContract({
       sources: getSources(metadata, sourceCode),
       settings: {
         optimizer: {
-          enabled: metadata.settings.optimizer?.enabled,
-          runs: metadata.settings.optimizer?.runs
+          enabled: (_a = metadata.settings.optimizer) == null ? void 0 : _a.enabled,
+          runs: (_b = metadata.settings.optimizer) == null ? void 0 : _b.runs
         }
       }
     }),
@@ -4450,8 +4557,8 @@ async function verifyEVMContract({
     contractaddress: contractAddress,
     contractname: "test",
     compilerversion: `v${metadata.compiler.version}`,
-    optimizationUsed: metadata.settings.optimizer?.enabled ? 1 : 0,
-    runs: metadata.settings.optimizer?.runs || 200,
+    optimizationUsed: ((_c = metadata.settings.optimizer) == null ? void 0 : _c.enabled) ? 1 : 0,
+    runs: ((_d = metadata.settings.optimizer) == null ? void 0 : _d.runs) || 200,
     constructorArguements: constructorArgs
     // Remove '0x' prefix
   };
@@ -4506,6 +4613,7 @@ var nftCollectionGeneration = {
     return awsAccessKeyIdOk || awsSecretAccessKeyOk || awsRegionOk || awsS3BucketOk || solanaPrivateKeyOk || solanaPublicKeyOk;
   },
   handler: async (runtime, message, _state, _options, callback) => {
+    var _a;
     try {
       elizaLogger3.log("Composing state for message:", message);
       const state = await runtime.composeState(message);
@@ -4526,7 +4634,7 @@ var nftCollectionGeneration = {
         schema: CreateCollectionSchema
       });
       const content = res.object;
-      if (content?.chainName === "solana") {
+      if ((content == null ? void 0 : content.chainName) === "solana") {
         const collectionInfo = await createCollectionMetadata({
           runtime,
           collectionName: runtime.character.name
@@ -4596,13 +4704,13 @@ Collection Link : ${collectionAddressRes.link}
           `Deployed contract address: ${contractAddress}`
         );
         const constructorArgs = encodeConstructorArguments(abi, params);
-        const blockExplorers = chain.blockExplorers?.default;
+        const blockExplorers = (_a = chain.blockExplorers) == null ? void 0 : _a.default;
         await verifyEVMContract({
           contractAddress,
           sourceCode,
           metadata,
           constructorArgs,
-          apiEndpoint: blockExplorers?.apiUrl || `${chain.blockExplorers.default.url}/api`
+          apiEndpoint: (blockExplorers == null ? void 0 : blockExplorers.apiUrl) || `${chain.blockExplorers.default.url}/api`
         });
         if (callback) {
           callback({
@@ -4879,7 +4987,7 @@ import {
 import {
   saveBase64Image as saveBase64Image2,
   saveHeuristImage as saveHeuristImage2
-} from "@elizaos/plugin-image-generation";
+} from "@elizaos-plugins/plugin-image-generation";
 import { PublicKey as PublicKey3 } from "@solana/web3.js";
 var nftTemplate = `
 # Areas of Expertise
@@ -4904,6 +5012,7 @@ async function createNFTMetadata({
   collectionFee,
   tokenId
 }) {
+  var _a, _b;
   const userId = runtime.agentId;
   elizaLogger4.log("User ID:", userId);
   const awsS3Service = runtime.getService(ServiceType2.AWS_S3);
@@ -4932,7 +5041,7 @@ async function createNFTMetadata({
     context,
     modelClass: ModelClass2.MEDIUM
   });
-  nftPrompt += runtime.character?.nft?.prompt || "";
+  nftPrompt += ((_b = (_a = runtime.character) == null ? void 0 : _a.nft) == null ? void 0 : _b.prompt) || "";
   nftPrompt += "The image should only feature one person.";
   const images = await generateImage2(
     {
@@ -5078,6 +5187,7 @@ var mintNFTAction = {
     return awsAccessKeyIdOk || awsSecretAccessKeyOk || awsRegionOk || awsS3BucketOk || solanaAdminPrivateKeyOk || solanaAdminPublicKeyOk;
   },
   handler: async (runtime, message, state, _options, callback) => {
+    var _a;
     try {
       elizaLogger5.log("Composing state for message:", message);
       let currentState;
@@ -5114,7 +5224,7 @@ var mintNFTAction = {
         }
         return false;
       }
-      if (content?.chainName === "solana") {
+      if ((content == null ? void 0 : content.chainName) === "solana") {
         const publicKey2 = runtime.getSetting("SOLANA_PUBLIC_KEY");
         const privateKey = runtime.getSetting("SOLANA_PRIVATE_KEY");
         const wallet = new walletSolana_default(
@@ -5126,7 +5236,7 @@ var mintNFTAction = {
         );
         elizaLogger5.log("Collection Info", collectionInfo);
         const metadata = collectionInfo.metadata;
-        if (metadata.collection?.["value"]) {
+        if ((_a = metadata.collection) == null ? void 0 : _a["value"]) {
           callback({
             text: `Unable to process mint request. Invalid collection address ${content.collectionAddress}.`,
             content: { error: "Invalid collection address." }
@@ -5382,152 +5492,6 @@ Collection Address: ${content.collectionAddress}
 };
 var mintNFTAction_default = mintNFTAction;
 
-// src/api.ts
-import express from "express";
-function createNFTApiRouter(agents) {
-  const router = express.Router();
-  router.post(
-    "/api/nft-generation/create-collection",
-    async (req, res) => {
-      const agentId = req.body.agentId;
-      const fee = req.body.fee || 0;
-      const runtime = agents.get(agentId);
-      if (!runtime) {
-        res.status(404).send("Agent not found");
-        return;
-      }
-      try {
-        const collectionAddressRes = await createSolanaCollection({
-          runtime,
-          collectionName: runtime.character.name,
-          fee
-        });
-        res.json({
-          success: true,
-          data: collectionAddressRes
-        });
-      } catch (e) {
-        console.log(e);
-        res.json({
-          success: false,
-          data: JSON.stringify(e)
-        });
-      }
-    }
-  );
-  router.post(
-    "/api/nft-generation/create-nft-metadata",
-    async (req, res) => {
-      const agentId = req.body.agentId;
-      const collectionName = req.body.collectionName;
-      const collectionAddress = req.body.collectionAddress;
-      const collectionAdminPublicKey = req.body.collectionAdminPublicKey;
-      const collectionFee = req.body.collectionFee;
-      const tokenId = req.body.tokenId;
-      const runtime = agents.get(agentId);
-      if (!runtime) {
-        res.status(404).send("Agent not found");
-        return;
-      }
-      try {
-        const nftInfo = await createNFTMetadata({
-          runtime,
-          collectionName,
-          collectionAdminPublicKey,
-          collectionFee,
-          tokenId
-        });
-        res.json({
-          success: true,
-          data: {
-            ...nftInfo,
-            collectionAddress
-          }
-        });
-      } catch (e) {
-        console.log(e);
-        res.json({
-          success: false,
-          data: JSON.stringify(e)
-        });
-      }
-    }
-  );
-  router.post(
-    "/api/nft-generation/create-nft",
-    async (req, res) => {
-      const agentId = req.body.agentId;
-      const collectionName = req.body.collectionName;
-      const collectionAddress = req.body.collectionAddress;
-      const collectionAdminPublicKey = req.body.collectionAdminPublicKey;
-      const collectionFee = req.body.collectionFee;
-      const tokenId = req.body.tokenId;
-      const runtime = agents.get(agentId);
-      if (!runtime) {
-        res.status(404).send("Agent not found");
-        return;
-      }
-      try {
-        const nftRes = await createNFT({
-          runtime,
-          collectionName,
-          collectionAddress,
-          collectionAdminPublicKey,
-          collectionFee,
-          tokenId
-        });
-        res.json({
-          success: true,
-          data: nftRes
-        });
-      } catch (e) {
-        console.log(e);
-        res.json({
-          success: false,
-          data: JSON.stringify(e)
-        });
-      }
-    }
-  );
-  router.post(
-    "/api/nft-generation/verify-nft",
-    async (req, res) => {
-      const agentId = req.body.agentId;
-      const collectionAddress = req.body.collectionAddress;
-      const NFTAddress = req.body.nftAddress;
-      const token = req.body.token;
-      const runtime = agents.get(agentId);
-      if (!runtime) {
-        res.status(404).send("Agent not found");
-        return;
-      }
-      const verifyToken = runtime.getSetting("SOLANA_VERIFY_TOKEN");
-      if (token !== verifyToken) {
-        res.status(401).send(" Access denied for translation");
-        return;
-      }
-      try {
-        const { success } = await verifyNFT({
-          runtime,
-          collectionAddress,
-          NFTAddress
-        });
-        res.json({
-          success: true,
-          data: success ? "verified" : "unverified"
-        });
-      } catch (e) {
-        console.log(e);
-        res.json({
-          success: false,
-          data: JSON.stringify(e)
-        });
-      }
-    }
-  );
-  return router;
-}
-
 // src/index.ts
 async function sleep(ms = 3e3) {
   return new Promise((resolve) => {
@@ -5542,8 +5506,6 @@ var nftGenerationPlugin = {
   providers: []
 };
 export {
-  WalletSolana,
-  createNFTApiRouter,
   nftGenerationPlugin,
   sleep
 };
