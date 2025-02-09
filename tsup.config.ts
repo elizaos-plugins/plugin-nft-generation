@@ -33,6 +33,7 @@ export default defineConfig({
         "safe-buffer",
         "viem",
         "@elizaos/core",
+        "@elizaos-plugins/plugin-image-generation",
         // Add other modules you want to externalize
     ],
 });
