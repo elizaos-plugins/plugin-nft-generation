@@ -32,6 +32,7 @@ export default defineConfig({
         "agentkeepalive",
         "safe-buffer",
         "viem",
+        "@elizaos/core",
         // Add other modules you want to externalize
     ],
 });
