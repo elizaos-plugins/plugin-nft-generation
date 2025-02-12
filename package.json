@@ -1,47 +1,82 @@
 {
-    "name": "@elizaos/plugin-nft-generation",
-    "version": "0.25.6-alpha.1",
-    "type": "module",
-    "main": "dist/index.js",
-    "module": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "exports": {
-        "./package.json": "./package.json",
-        ".": {
-            "import": {
-                "@elizaos/source": "./src/index.ts",
-                "types": "./dist/index.d.ts",
-                "default": "./dist/index.js"
-            }
-        }
-    },
-    "files": [
-        "dist"
-    ],
-    "dependencies": {
-        "@metaplex-foundation/mpl-token-metadata": "^3.3.0",
-        "@metaplex-foundation/mpl-toolbox": "^0.9.4",
-        "@metaplex-foundation/umi": "^0.9.2",
-        "@metaplex-foundation/umi-bundle-defaults": "^0.9.2",
-        "@openzeppelin/contracts": "^5.1.0",
-        "@solana-developers/helpers": "^2.5.6",
-        "@solana/web3.js": "npm:@solana/web3.js@1.95.5",
-        "axios": "^1.7.9",
-        "bs58": "6.0.0",
-        "express": "4.21.1",
-        "node-cache": "5.1.2",
-        "solc": "^0.8.28",
-        "tsup": "8.3.5",
-        "viem": "^2.21.60"
-    },
-    "scripts": {
-        "build": "tsup --format esm --dts",
-        "dev": "tsup --format esm --dts --watch"
-    },
-    "peerDependencies": {
-        "whatwg-url": "7.1.0"
-    },
-    "publishConfig": {
-        "access": "public"
+  "name": "@elizaos/plugin-nft-generation",
+  "version": "0.25.6-alpha.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "@elizaos/source": "./src/index.ts",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@metaplex-foundation/mpl-token-metadata": "^3.3.0",
+    "@metaplex-foundation/mpl-toolbox": "^0.9.4",
+    "@metaplex-foundation/umi": "^0.9.2",
+    "@metaplex-foundation/umi-bundle-defaults": "^0.9.2",
+    "@openzeppelin/contracts": "^5.1.0",
+    "@solana-developers/helpers": "^2.5.6",
+    "@solana/web3.js": "npm:@solana/web3.js@1.95.5",
+    "axios": "^1.7.9",
+    "bs58": "6.0.0",
+    "express": "4.21.1",
+    "node-cache": "5.1.2",
+    "solc": "^0.8.28",
+    "tsup": "8.3.5",
+    "viem": "^2.21.60"
+  },
+  "scripts": {
+    "build": "tsup --format esm --dts",
+    "dev": "tsup --format esm --dts --watch"
+  },
+  "peerDependencies": {
+    "whatwg-url": "7.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "agentConfig": {
+    "pluginType": "elizaos:client:1.0.0",
+    "pluginParameters": {
+      "SOLANA_PUBLIC_KEY": {
+        "type": "string"
+      },
+      "SOLANA_PRIVATE_KEY": {
+        "type": "string"
+      },
+      "SOLANA_ADMIN_PUBLIC_KEY": {
+        "type": "string"
+      },
+      "SOLANA_ADMIN_PRIVATE_KEY": {
+        "type": "string"
+      },
+      "SOLANA_VERIFY_TOKEN": {
+        "type": "string"
+      },
+      "SOLANA_CLUSTER": {
+        "type": "string"
+      },
+      "AWS_ACCESS_KEY_ID": {
+        "type": "string"
+      },
+      "AWS_SECRET_ACCESS_KEY": {
+        "type": "string"
+      },
+      "AWS_REGION": {
+        "type": "string"
+      },
+      "AWS_S3_BUCKET": {
+        "type": "string"
+      }
+    }
+  }
 }

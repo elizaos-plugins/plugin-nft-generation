@@ -2,7 +2,6 @@
     "compilerOptions": {
         "outDir": "dist",
         "rootDir": "src",
-        "types": ["node"],
         "lib": ["ESNext", "dom"],
         "module": "Preserve",
         "moduleResolution": "Bundler",
@@ -21,8 +20,5 @@
         "moduleDetection": "force",
         "allowArbitraryExtensions": true
     },
-    "include": [
-        "src/**/*.ts",
-        "src/solModule.d.ts"
-    ]
+    "include": ["src/**/*.ts"]
 }
